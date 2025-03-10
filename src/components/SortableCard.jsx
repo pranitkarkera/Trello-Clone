@@ -1,23 +1,30 @@
 import React, { useState } from "react";
-import { Edit2 } from "react-feather";
-import { X} from "react-feather";
+import { Edit2, X } from "react-feather";
 import CardModal from "./CardModal";
 import ViewCardDetails from "./ViewCardDetails";
 import { useSortable } from "@dnd-kit/sortable";
-// import { CSS } from "@dnd-kit/utilities";
+import { CSS } from "@dnd-kit/utilities";
 
 const SortableCard = ({ item, editCard, deleteCard }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
-  const handleEdit = (newTitle, newDescription, newDueDate) => {
-    editCard(item.id, newTitle, newDescription, newDueDate);
-    setShowEditModal(false); // Close the edit modal after editing
-  };
-
-  const { attributes, listeners, setNodeRef, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    isDragging,
+    transform,
+    transition,
+  } = useSortable({
     id: item.id,
   });
+
+  const style = {
+    transform: transform ? CSS.Transform.toString(transform) : undefined,
+    transition,
+    opacity: isDragging ? 0.5 : 1, // Reduce opacity when dragging
+  };
 
   return (
     <>
@@ -25,16 +32,15 @@ const SortableCard = ({ item, editCard, deleteCard }) => {
         ref={setNodeRef}
         {...listeners}
         {...attributes}
-        className={`item flex justify-between text-white items-center bg-zinc-500 p-1 cursor-pointer rounded-md border-2 border-gray-700 hover:border-gray-500 ${
-          isDragging ? "opacity-50" : ""
-        }`}
-        onClick={() => setShowViewModal(true)} // Open view modal on card click
+        style={style}
+        className="item flex justify-between text-white items-center bg-zinc-500 p-1 cursor-pointer rounded-md border-2 border-gray-700 hover:border-gray-500"
+        onClick={() => setShowViewModal(true)} // Open view modal on click
       >
         <span>{item.title}</span>
         <div className="flex">
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering the card click event
+              e.stopPropagation(); // Prevent opening view modal
               setShowEditModal(true);
             }}
             className="hover p-1 rounded-sm"
@@ -43,8 +49,7 @@ const SortableCard = ({ item, editCard, deleteCard }) => {
           </button>
           <button
             onClick={(e) => {
-              e.stopPropagation(); // Prevent triggering the card click event
-              console.log("Delete button clicked for card ID:", item.id);
+              e.stopPropagation(); // Prevent opening view modal
               deleteCard(item.id);
             }}
             className="hover p-1 rounded-sm"
@@ -56,7 +61,9 @@ const SortableCard = ({ item, editCard, deleteCard }) => {
       {showEditModal && (
         <CardModal
           onClose={() => setShowEditModal(false)}
-          onSave={handleEdit}
+          onSave={(newTitle, newDescription, newDueDate) =>
+            editCard(item.id, newTitle, newDescription, newDueDate)
+          }
           card={item}
         />
       )}

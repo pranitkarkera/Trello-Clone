@@ -1,7 +1,10 @@
 import React, { useContext, useState } from "react";
 import { X, Plus } from "react-feather";
 import { useDroppable } from "@dnd-kit/core";
-import { SortableContext } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { BoardContext } from "../context/BoardContext";
 import SortableCard from "./SortableCard";
 
@@ -41,7 +44,10 @@ const List = ({ list, index, deleteList, deleteCard , editCard}) => {
           <X size={16} className="text-white" />
         </button>
       </div>
-      <SortableContext items={list.items.map((item) => item.id)}>
+      <SortableContext
+        items={list.items.map((item) => item.id)}
+        strategy={verticalListSortingStrategy}
+      >
         <div className="py-1">
           {list.items.map((item) => (
             <SortableCard
