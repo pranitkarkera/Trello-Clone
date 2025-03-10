@@ -14,7 +14,7 @@ const AddList = ({ getlist }) => {
   };
 
   return (
-    <div className="mr-3 w-60 h-fit rounded-md p-2 bg-gray-700 flex-shrink-0 shadow-md">
+    <div className="mr-3 w-60 h-fit rounded-md bg-zinc-600 p-2 flex-shrink-0 shadow-md">
       {showInput ? (
         <div>
           <input
@@ -33,7 +33,7 @@ const AddList = ({ getlist }) => {
             </button>
             <button
               onClick={() => setShowInput(false)}
-              className="bg-red-500 text-white py-1 px-2 rounded hover:bg-red-600 flex items-center"
+              className=" text-white py-1 px-2 flex items-center"
             >
               <X size={16} className="mr-1" />
             </button>
@@ -42,9 +42,9 @@ const AddList = ({ getlist }) => {
       ) : (
         <button
           onClick={() => setShowInput(true)}
-          className="w-full bg-green-500 text-white py-1 rounded hover:bg-green-600"
+          className="w-full text-white py-1 rounded flex bg-white-300"
         >
-          Add List
+          <Plus size={16} className="text-white mt-1" /> <span>Add List</span>
         </button>
       )}
     </div>
