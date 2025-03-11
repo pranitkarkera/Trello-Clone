@@ -166,7 +166,12 @@ const Main = () => {
         items={bdata.list.map((list) => list.id)}
         strategy={rectSortingStrategy}
       >
-        <div className="flex overflow-x-scroll p-4 space-x-4 flex-grow">
+        <div
+          style={{
+            backgroundColor: bdata.bgcolor,
+          }}
+          className="flex overflow-x-scroll p-4 space-x-4 flex-grow"
+        >
           {bdata.list.map((list, index) => (
             <SortableContext
               key={list.id}
