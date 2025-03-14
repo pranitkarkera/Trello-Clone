@@ -3,13 +3,14 @@ import { Edit2, X } from "react-feather";
 import CardModal from "./CardModal";
 import ViewCardDetails from "./ViewCardDetails";
 
-const SortableCard = ({ item, editCard, deleteCard }) => {
+const SortableCard = ({ item, listId, editCard, deleteCard }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
 
   const handleDragStart = (e) => {
     e.dataTransfer.setData("type", "card");
-    e.dataTransfer.setData("text/plain", item.id);
+    e.dataTransfer.setData("cardId", item.id);
+    e.dataTransfer.setData("sourceListId", listId); // Track the source list
   };
 
   return (
@@ -19,6 +20,7 @@ const SortableCard = ({ item, editCard, deleteCard }) => {
         onClick={() => setShowViewModal(true)} // Open view modal on click
         draggable
         onDragStart={handleDragStart}
+        data-card-id={item.id} // Add data attribute for card ID
       >
         <span>{item.title}</span>
         <div className="flex">

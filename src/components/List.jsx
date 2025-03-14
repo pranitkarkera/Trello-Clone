@@ -3,11 +3,17 @@ import { X, Plus } from "react-feather";
 import { BoardContext } from "../context/BoardContext";
 import SortableCard from "./SortableCard";
 
-const List = ({ list, index, deleteList, deleteCard, editCard }) => {
+const List = ({
+  list,
+  index,
+  deleteList,
+  deleteCard,
+  editCard,
+  onCardDrop,
+}) => {
   const { allboard, setAllBoard } = useContext(BoardContext);
   const [showInput, setShowInput] = useState(false);
   const [title, setTitle] = useState("");
-  const [draggedListIndex, setDraggedListIndex] = useState(null);
 
   const handleAddCard = () => {
     const newList = [...allboard.boards[allboard.active].list];
@@ -26,35 +32,23 @@ const List = ({ list, index, deleteList, deleteCard, editCard }) => {
   };
 
   const handleListDragStart = (e) => {
-    setDraggedListIndex(index);
     e.dataTransfer.setData("type", "list");
     e.dataTransfer.setData("listIndex", index);
   };
 
-  const handleDragOver = (e) => {
+  const handleListDragOver = (e) => {
     e.preventDefault(); // Allow drop
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    const draggedItemType = e.dataTransfer.getData("type");
-
-    if (draggedItemType === "card") {
-      handleDropCardToAnotherList(e);
-    } else if (draggedItemType === "list") {
-      handleListDrop(e);
-    }
-  };
-
   const handleListDrop = (e) => {
-    const targetIndex = index;
+    e.preventDefault();
     const draggedIndex = e.dataTransfer.getData("listIndex");
 
-    if (draggedIndex === targetIndex) return; // No change if dropped on itself
+    if (draggedIndex === index) return; // No change if dropped on itself
 
     const newListOrder = [...allboard.boards[allboard.active].list];
     const [removed] = newListOrder.splice(draggedIndex, 1);
-    newListOrder.splice(targetIndex, 0, removed);
+    newListOrder.splice(index, 0, removed);
 
     setAllBoard((prev) => ({
       ...prev,
@@ -62,49 +56,18 @@ const List = ({ list, index, deleteList, deleteCard, editCard }) => {
         i === prev.active ? { ...board, list: newListOrder } : board
       ),
     }));
-    setDraggedListIndex(null);
   };
 
-  const handleDropCardToAnotherList = (e) => {
-    const draggedCardId = e.dataTransfer.getData("text/plain");
-    const newList = [...allboard.boards[allboard.active].list];
-
-    // Find the card being dragged
-    const draggedCardIndex = newList
-      .flatMap((list) => list.items)
-      .findIndex((item) => item.id === draggedCardId);
-    if (draggedCardIndex !== -1) {
-      const draggedCard = newList
-        .flatMap((list) => list.items)
-        .splice(draggedCardIndex, 1)[0];
-
-      // Remove the card from the original list
-      const originalListIndex = newList.findIndex((list) =>
-        list.items.some((item) => item.id === draggedCardId)
-      );
-      if (originalListIndex !== -1) {
-        newList[originalListIndex].items = newList[
-          originalListIndex
-        ].items.filter((item) => item.id !== draggedCardId);
-      }
-
-      // Add the dragged card to the current list
-      newList[index].items.push(draggedCard);
-      setAllBoard((prev) => ({
-        ...prev,
-        boards: prev.boards.map((board, i) =>
-          i === prev.active ? { ...board, list: newList } : board
-        ),
-      }));
-    }
+  const handleCardDragOver = (e) => {
+    e.preventDefault(); // Allow card drop
   };
 
   return (
     <div
       draggable
       onDragStart={handleListDragStart}
-      onDrop={handleDrop}
-      onDragOver={handleDragOver}
+      onDragOver={handleListDragOver}
+      onDrop={handleListDrop}
       className="mr-3 w-60 h-fit rounded-md p-2 bg-gray-700 flex-shrink-0 shadow-md"
     >
       <div className="flex justify-between p-1">
@@ -118,11 +81,16 @@ const List = ({ list, index, deleteList, deleteCard, editCard }) => {
           </button>
         </div>
       </div>
-      <div className="py-1">
+      <div
+        className="py-1"
+        onDragOver={handleCardDragOver}
+        onDrop={(e) => onCardDrop(e, list.id)}
+      >
         {list.items.map((item) => (
           <SortableCard
             key={item.id}
             item={item}
+            listId={list.id}
             editCard={(id, title, description, dueDate) =>
               editCard(id, title, description, dueDate)
             }
