@@ -1,18 +1,13 @@
 import React, { useContext, useState } from "react";
 import { X, Plus } from "react-feather";
-import { useDroppable } from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
 import { BoardContext } from "../context/BoardContext";
 import SortableCard from "./SortableCard";
 
-const List = ({ list, index, deleteList, deleteCard , editCard}) => {
+const List = ({ list, index, deleteList, deleteCard, editCard }) => {
   const { allboard, setAllBoard } = useContext(BoardContext);
   const [showInput, setShowInput] = useState(false);
   const [title, setTitle] = useState("");
-  const { setNodeRef } = useDroppable({ id: list.id });
+  const [draggedListIndex, setDraggedListIndex] = useState(null);
 
   const handleAddCard = () => {
     const newList = [...allboard.boards[allboard.active].list];
@@ -30,37 +25,111 @@ const List = ({ list, index, deleteList, deleteCard , editCard}) => {
     setShowInput(false);
   };
 
+  const handleListDragStart = (e) => {
+    setDraggedListIndex(index);
+    e.dataTransfer.setData("type", "list");
+    e.dataTransfer.setData("listIndex", index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Allow drop
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const draggedItemType = e.dataTransfer.getData("type");
+
+    if (draggedItemType === "card") {
+      handleDropCardToAnotherList(e);
+    } else if (draggedItemType === "list") {
+      handleListDrop(e);
+    }
+  };
+
+  const handleListDrop = (e) => {
+    const targetIndex = index;
+    const draggedIndex = e.dataTransfer.getData("listIndex");
+
+    if (draggedIndex === targetIndex) return; // No change if dropped on itself
+
+    const newListOrder = [...allboard.boards[allboard.active].list];
+    const [removed] = newListOrder.splice(draggedIndex, 1);
+    newListOrder.splice(targetIndex, 0, removed);
+
+    setAllBoard((prev) => ({
+      ...prev,
+      boards: prev.boards.map((board, i) =>
+        i === prev.active ? { ...board, list: newListOrder } : board
+      ),
+    }));
+    setDraggedListIndex(null);
+  };
+
+  const handleDropCardToAnotherList = (e) => {
+    const draggedCardId = e.dataTransfer.getData("text/plain");
+    const newList = [...allboard.boards[allboard.active].list];
+
+    // Find the card being dragged
+    const draggedCardIndex = newList
+      .flatMap((list) => list.items)
+      .findIndex((item) => item.id === draggedCardId);
+    if (draggedCardIndex !== -1) {
+      const draggedCard = newList
+        .flatMap((list) => list.items)
+        .splice(draggedCardIndex, 1)[0];
+
+      // Remove the card from the original list
+      const originalListIndex = newList.findIndex((list) =>
+        list.items.some((item) => item.id === draggedCardId)
+      );
+      if (originalListIndex !== -1) {
+        newList[originalListIndex].items = newList[
+          originalListIndex
+        ].items.filter((item) => item.id !== draggedCardId);
+      }
+
+      // Add the dragged card to the current list
+      newList[index].items.push(draggedCard);
+      setAllBoard((prev) => ({
+        ...prev,
+        boards: prev.boards.map((board, i) =>
+          i === prev.active ? { ...board, list: newList } : board
+        ),
+      }));
+    }
+  };
+
   return (
     <div
-      ref={setNodeRef}
+      draggable
+      onDragStart={handleListDragStart}
+      onDrop={handleDrop}
+      onDragOver={handleDragOver}
       className="mr-3 w-60 h-fit rounded-md p-2 bg-gray-700 flex-shrink-0 shadow-md"
     >
       <div className="flex justify-between p-1">
         <span className="text-white font-semibold">{list.title}</span>
-        <button
-          onClick={() => deleteList(index)}
-          className="hover:bg-gray-500 p-1 rounded-sm"
-        >
-          <X size={16} className="text-white" />
-        </button>
-      </div>
-      <SortableContext
-        items={list.items.map((item) => item.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        <div className="py-1">
-          {list.items.map((item) => (
-            <SortableCard
-              key={item.id}
-              item={item}
-              editCard={(id, title, description, dueDate) =>
-                editCard(id, title, description, dueDate)
-              }
-              deleteCard={(id) => deleteCard(id)}
-            />
-          ))}
+        <div className="flex gap-2">
+          <button
+            onClick={() => deleteList(index)}
+            className="hover:bg-gray-500 p-1 rounded-sm"
+          >
+            <X size={16} className="text-white" />
+          </button>
         </div>
-      </SortableContext>
+      </div>
+      <div className="py-1">
+        {list.items.map((item) => (
+          <SortableCard
+            key={item.id}
+            item={item}
+            editCard={(id, title, description, dueDate) =>
+              editCard(id, title, description, dueDate)
+            }
+            deleteCard={(id) => deleteCard(id)}
+          />
+        ))}
+      </div>
       {showInput ? (
         <div className="mt-2">
           <input
