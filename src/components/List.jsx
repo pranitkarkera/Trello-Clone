@@ -63,14 +63,14 @@ const List = ({
   };
 
   return (
-    <div
-      draggable
-      onDragStart={handleListDragStart}
-      onDragOver={handleListDragOver}
-      onDrop={handleListDrop}
-      className="mr-3 w-60 h-fit rounded-md p-2 bg-gray-700 flex-shrink-0 shadow-md"
-    >
-      <div className="flex justify-between p-1">
+    <div className="mr-3 w-60 h-fit rounded-md p-2 bg-gray-700 flex-shrink-0 shadow-md">
+      <div
+        className="flex justify-between p-1"
+        draggable
+        onDragStart={handleListDragStart}
+        onDragOver={handleListDragOver}
+        onDrop={handleListDrop}
+      >
         <span className="text-white font-semibold">{list.title}</span>
         <div className="flex gap-2">
           <button
