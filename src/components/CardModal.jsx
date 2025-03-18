@@ -19,7 +19,7 @@ const CardModal = ({ onClose, onSave, card }) => {
 
   return (
     <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center">
-      <div className="bg-white rounded-md p-4 w-80">
+      <div className="bg-white rounded-md p-4 w-80 border-2 border-black-100">
         <input
           type="text"
           value={title}
